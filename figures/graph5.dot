@@ -1,0 +1,10 @@
+digraph G {
+node[shape=circle];
+":a" -> ":b" [label=4];
+":a" -> ":c" [label=6];
+":b" -> ":d" [label=2];
+":d" -> ":c" [label=1];
+":d" -> ":f" [label=2];
+":c" -> ":e" [label=3];
+":e" -> ":f" [label=3];
+}

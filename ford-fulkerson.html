@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Ford-Fulkerson Algorithm for Maximal Flow</title>
+  <style>
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <style>
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(title);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    background-color: #232629;
+    color: #7a7c7d;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #7a7c7d;  padding-left: 4px; }
+div.sourceCode
+  { color: #cfcfc2; background-color: #232629; }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span. { color: #cfcfc2; } /* Normal */
+code span.al { color: #95da4c; } /* Alert */
+code span.an { color: #3f8058; } /* Annotation */
+code span.at { color: #2980b9; } /* Attribute */
+code span.bn { color: #f67400; } /* BaseN */
+code span.bu { color: #7f8c8d; } /* BuiltIn */
+code span.cf { color: #fdbc4b; } /* ControlFlow */
+code span.ch { color: #3daee9; } /* Char */
+code span.cn { color: #27aeae; } /* Constant */
+code span.co { color: #7a7c7d; } /* Comment */
+code span.cv { color: #7f8c8d; } /* CommentVar */
+code span.do { color: #a43340; } /* Documentation */
+code span.dt { color: #2980b9; } /* DataType */
+code span.dv { color: #f67400; } /* DecVal */
+code span.er { color: #da4453; } /* Error */
+code span.ex { color: #0099ff; } /* Extension */
+code span.fl { color: #f67400; } /* Float */
+code span.fu { color: #8e44ad; } /* Function */
+code span.im { color: #27ae60; } /* Import */
+code span.in { color: #c45b00; } /* Information */
+code span.kw { color: #cfcfc2; } /* Keyword */
+code span.op { color: #cfcfc2; } /* Operator */
+code span.ot { color: #27ae60; } /* Other */
+code span.pp { color: #27ae60; } /* Preprocessor */
+code span.re { color: #2980b9; } /* RegionMarker */
+code span.sc { color: #3daee9; } /* SpecialChar */
+code span.ss { color: #da4453; } /* SpecialString */
+code span.st { color: #f44f4f; } /* String */
+code span.va { color: #27aeae; } /* Variable */
+code span.vs { color: #da4453; } /* VerbatimString */
+code span.wa { color: #da4453; } /* Warning */
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-AMS_CHTML-full" type="text/javascript"></script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Ford-Fulkerson Algorithm for Maximal Flow</h1>
+</header>
+<h2 id="weighted-simple-directed-graphs">Weighted Simple Directed Graphs</h2>
+<p>We have a weighted simple directed graph <span class="math inline">\(G = (V,E,w)\)</span> where <span class="math inline">\(V\)</span> is a finite set of vertices, <span class="math inline">\(E\subseteq V\times V\)</span> is the set of edges and <span class="math inline">\(w\colon E\to [0,\infty)\)</span> is the weight function. Here is an example:</p>
+<p><img src="graph1.png" /></p>
+<h2 id="augmenting-subgraphs">Augmenting Subgraphs</h2>
+<p>I will call a weighted simple directed graph <span class="math inline">\(G&#39;=(V&#39;,E&#39;,w&#39;)\)</span> an <em>augmenting subgraph of <span class="math inline">\(G\)</span></em> if</p>
+<ol type="1">
+<li><span class="math inline">\(G&#39;=(V&#39;,E&#39;)\)</span> is a subgraph of <span class="math inline">\(G\)</span>,</li>
+<li><span class="math inline">\(w&#39;(a,b)\leq w(a,b)\)</span> for every <span class="math inline">\((a,b)\in E&#39;\)</span>, and</li>
+<li><span class="math inline">\(\sum_{(c,a)\in E&#39;} w&#39;(c,a) = \sum_{(a,b)\in E&#39;} w&#39;(a,b)\)</span> for every <span class="math inline">\(a\in V&#39;\)</span> which is neither a source nor a sink.</li>
+</ol>
+<p>The last condition says in the subgraph, the total weights of incoming edges at a vertex is equal to the total weight of the outgoing edges on the same vertex. With these conditions at hand, notice that a weighted simple directed graph need not be an augmented subgraph of itself, as in our example above.</p>
+<p>Here is an example of an augmenting subgraph:</p>
+<p><img src="graph2.png" /></p>
+<p>Notice that any path in <span class="math inline">\(G\)</span> gives us an augmenting subgraph if we set the weights of each of the edges to the minimal weight along the path. For example the path <span class="math inline">\(acef\)</span> with all weights equal to <span class="math inline">\(3\)</span> is an augmenting path.</p>
+<h2 id="residual-subgraph">Residual Subgraph</h2>
+<p>If <span class="math inline">\(G=(V,E,w)\)</span> is a weighted simple directed graph and if <span class="math inline">\(G&#39;=(V&#39;,E&#39;,w&#39;)\)</span> is an augmented graph, the residual graph (which we denote by <span class="math inline">\(G\setminus G&#39;\)</span> is the graph <span class="math inline">\((V,E, w&#39;&#39;)\)</span> where the weight function <span class="math inline">\(w&#39;&#39;\)</span> is defined as</p>
+<p><span class="math display">\[ w&#39;&#39;(a,b) = 
+   \begin{cases}
+     w(a,b) - w&#39;(a,b) &amp; \text{ if } (a,b)\in E&#39;\\
+     w(b,a) + w&#39;(a,b) &amp; \text{ if } (a,b)\in E&#39; \text{ and } (b,a)\in E\\
+     w&#39;(b,a) &amp; \text{ if } (a,b)\in E&#39; \text{ but } (b,a)\notin E
+   \end{cases}
+\]</span></p>
+<p>In order to simplify the computation, let us set the weight of all nonexistent edges to 0. Then the new weight matrix is going to be</p>
+<p><span class="math display">\[ w&#39;&#39;(a,b) = 
+   \begin{cases}
+     w(a,b) - w&#39;(a,b) &amp; \text{ if } (a,b)\in E&#39;\\
+     w(a,b) + w&#39;(b,a) &amp; \text{ if } (b,a)\in E&#39;
+   \end{cases}
+\]</span></p>
+<p>With this definition at hand, for the graph and the augmenting subgraph we gave above the residual graph is going to be</p>
+<p><img src="graph4.png" /></p>
+<h2 id="the-poset-of-augmenting-subgraphs">The Poset of Augmenting Subgraphs</h2>
+<p>There is a partial order on the set of all augmenting subgraphs of a given weighted simple directed graph. So, if <span class="math inline">\(G&#39;=(V&#39;,E&#39;,w&#39;)\)</span> and <span class="math inline">\(G&#39;&#39;=(V&#39;&#39;,E&#39;&#39;,w&#39;&#39;)\)</span> are two such graphs then we say <span class="math inline">\(G&#39;\leq G&#39;&#39;\)</span> if <span class="math inline">\(G&#39;\)</span> is a subgraph of <span class="math inline">\(G&#39;&#39;\)</span> and we have <span class="math inline">\(w&#39;(a,b)\leq w&#39;&#39;(a,b)\)</span> for every <span class="math inline">\((a,b)\in E&#39;\)</span>.</p>
+<p>With this definition at hand, now we can talk about <em>maximal augmented subgraphs</em>. Here are two such maximal augmented subgraphs which (necessarily) are incomparible:</p>
+<p><img src="graph2.png" /> <img src="graph3.png" /></p>
+<h2 id="flow-along-an-augmenting-subgraph">Flow Along an Augmenting Subgraph</h2>
+<p>Given an augmenting subgraph <span class="math inline">\(G&#39;=(V&#39;,E&#39;,w&#39;)\)</span> we define the total flow as</p>
+<p><span class="math display">\[ Flow(G&#39;)
+   = \sum_{s\in Sink(G&#39;)} \sum_{(a,s)\in E&#39;} w&#39;(a,s)
+   = \sum_{s\in Source(G&#39;)} \sum_{(s,a)\in E&#39;} w&#39;(s,a)
+\]</span></p>
+<p>Notice that even though both augmenting subgraphs example above are maximal with respect to the partial order we defined above, the total flow from the source to sink are different.</p>
+<h2 id="maximal-augmenting-subgraphs-with-maximal-flow">Maximal Augmenting Subgraphs with Maximal Flow</h2>
+<p>So, we can now talk about a maximal augmenting subgraph with maximal flow. If <span class="math inline">\(F\)</span> is the weight function of the maximal augmenting subgraph with maximal flow then one can define it recursively as</p>
+<p><span class="math display">\[ F(G) = F(G\setminus S) + w_S \]</span></p>
+<p>for an augmenting subgraph <span class="math inline">\(S\)</span> of <span class="math inline">\(G\)</span> where <span class="math inline">\(w_S\)</span> is the weight function of the augmenting subgraph <span class="math inline">\(S\)</span>. The base case is that <span class="math inline">\(F(G)\)</span> is uniform weight function 0 if <span class="math inline">\(G\)</span> has no augmenting subgraphs.</p>
+<p>The <a href="https://en.wikipedia.org/wiki/Ford%E2%80%93Fulkerson_algorithm">Ford-Fulkerson Algorithm</a> finds the weight function of a maximal augmenting subgraph with maximal flow using this recursive formula with augmenting paths for <span class="math inline">\(S\)</span>.</p>
+<h2 id="an-implementation-in-clojure">An Implementation in Clojure</h2>
+<p>#’user/dot-file</p>
+<p>I will represent a weighted simple graph as a hashmap of pairs of vertices:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode clojure"><code class="sourceCode clojure"><a class="sourceLine" id="cb1-1" title="1">(<span class="bu">def</span><span class="fu"> G </span>{[<span class="at">:a</span> <span class="at">:b</span>] <span class="dv">4</span> [<span class="at">:a</span> <span class="at">:c</span>] <span class="dv">6</span> [<span class="at">:b</span> <span class="at">:d</span>] <span class="dv">2</span> [<span class="at">:d</span> <span class="at">:c</span>] <span class="dv">1</span> </a>
+<a class="sourceLine" id="cb1-2" title="2">        [<span class="at">:d</span> <span class="at">:f</span>] <span class="dv">2</span> [<span class="at">:c</span> <span class="at">:e</span>] <span class="dv">3</span> [<span class="at">:e</span> <span class="at">:f</span>] <span class="dv">3</span>})</a></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode clojure"><code class="sourceCode clojure"><a class="sourceLine" id="cb2-1" title="1"><span class="va">#&#39;user/G</span></a></code></pre></div>
+<p><img src="graph5.png" /></p>
+<p>Here is an augmenting subgraph:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode clojure"><code class="sourceCode clojure"><a class="sourceLine" id="cb3-1" title="1">(<span class="bu">def</span><span class="fu"> S </span>{[<span class="at">:a</span> <span class="at">:b</span>] <span class="dv">2</span> [<span class="at">:b</span> <span class="at">:d</span>] <span class="dv">2</span> [<span class="at">:a</span> <span class="at">:c</span>] <span class="dv">3</span></a>
+<a class="sourceLine" id="cb3-2" title="2">        [<span class="at">:d</span> <span class="at">:f</span>] <span class="dv">2</span> [<span class="at">:c</span> <span class="at">:e</span>] <span class="dv">3</span> [<span class="at">:e</span> <span class="at">:f</span>] <span class="dv">3</span>})</a></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode clojure"><code class="sourceCode clojure"><a class="sourceLine" id="cb4-1" title="1"><span class="va">#&#39;user/S</span></a></code></pre></div>
+<p><img src="graph6.png" /></p>
+<p>Next, we need a function that returns a residual graph for a weighted simple directed graph and an augmenting subgraph:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode clojure"><code class="sourceCode clojure"><a class="sourceLine" id="cb5-1" title="1">(<span class="bu">defn</span><span class="fu"> residual-graph </span>[G S]</a>
+<a class="sourceLine" id="cb5-2" title="2">   (<span class="kw">-&gt;&gt;</span> (<span class="kw">mapcat</span> (<span class="kw">fn</span> [[k v]] {k (<span class="kw">-</span> v) (<span class="kw">reverse</span> k) v}) S)</a>
+<a class="sourceLine" id="cb5-3" title="3">        (<span class="kw">into</span> {})</a>
+<a class="sourceLine" id="cb5-4" title="4">        (<span class="kw">merge-with</span> <span class="kw">+</span> G)</a>
+<a class="sourceLine" id="cb5-5" title="5">        (<span class="kw">filter</span> (<span class="kw">fn</span> [[k v]] (<span class="kw">&gt;</span> v <span class="dv">0</span>)))</a>
+<a class="sourceLine" id="cb5-6" title="6">        (<span class="kw">into</span> {})))</a></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode clojure"><code class="sourceCode clojure"><a class="sourceLine" id="cb6-1" title="1"><span class="va">#&#39;user/residual-graph</span></a></code></pre></div>
+<p>Let us test</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode clojure"><code class="sourceCode clojure"><a class="sourceLine" id="cb7-1" title="1">(<span class="bu">def</span><span class="fu"> RG </span>(residual-graph G S))</a>
+<a class="sourceLine" id="cb7-2" title="2">RG</a></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode clojure"><code class="sourceCode clojure"><a class="sourceLine" id="cb8-1" title="1"><span class="va">#&#39;user/RG</span></a>
+<a class="sourceLine" id="cb8-2" title="2">{(<span class="at">:b</span> <span class="at">:a</span>) <span class="dv">2</span>, (<span class="at">:c</span> <span class="at">:a</span>) <span class="dv">3</span>, (<span class="at">:f</span> <span class="at">:e</span>) <span class="dv">3</span>, [<span class="at">:a</span> <span class="at">:b</span>] <span class="dv">2</span>, (<span class="at">:f</span> <span class="at">:d</span>) <span class="dv">2</span>, [<span class="at">:a</span> <span class="at">:c</span>] <span class="dv">3</span>, [<span class="at">:d</span> <span class="at">:c</span>] <span class="dv">1</span>, (<span class="at">:e</span> <span class="at">:c</span>) <span class="dv">3</span>, (<span class="at">:d</span> <span class="at">:b</span>) <span class="dv">2</span>}</a></code></pre></div>
+<p><img src="graph7.png" /></p>
+<p>Next, a depth-first search function to find an augmenting path between two vertices:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode clojure"><code class="sourceCode clojure"><a class="sourceLine" id="cb9-1" title="1">(<span class="bu">defn</span><span class="fu"> find-a-path </span>[G a b]</a>
+<a class="sourceLine" id="cb9-2" title="2">  (<span class="kw">loop</span> [H G</a>
+<a class="sourceLine" id="cb9-3" title="3">         x a</a>
+<a class="sourceLine" id="cb9-4" title="4">         P []]</a>
+<a class="sourceLine" id="cb9-5" title="5">    (<span class="kw">let</span> [ys (<span class="kw">-&gt;&gt;</span> (<span class="kw">keys</span> H) (<span class="kw">filter</span> (<span class="kw">fn</span> [[u v]] (<span class="kw">=</span> u x))))]</a>
+<a class="sourceLine" id="cb9-6" title="6">      (<span class="kw">cond</span> (<span class="kw">or</span> (<span class="kw">empty?</span> H) (<span class="kw">nil?</span> x)) []</a>
+<a class="sourceLine" id="cb9-7" title="7">            (<span class="kw">contains?</span> (<span class="kw">into</span> #{} ys) [x b]) (<span class="kw">reverse</span> (<span class="kw">cons</span> [x b] P))</a>
+<a class="sourceLine" id="cb9-8" title="8">            (<span class="kw">empty?</span> ys) (<span class="kw">recur</span> (<span class="kw">dissoc</span> H (<span class="kw">first</span> P)) (<span class="kw">-&gt;</span> P <span class="kw">first</span> <span class="kw">first</span>) (<span class="kw">rest</span> P))</a>
+<a class="sourceLine" id="cb9-9" title="9">            <span class="at">:true</span> (<span class="kw">recur</span> (<span class="kw">dissoc</span> H (<span class="kw">first</span> ys)) (<span class="kw">-&gt;</span> ys <span class="kw">first</span> <span class="kw">second</span>) (<span class="kw">cons</span> (<span class="kw">first</span> ys) P))))))</a></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode clojure"><code class="sourceCode clojure"><a class="sourceLine" id="cb10-1" title="1"><span class="va">#&#39;user/find-a-path</span></a></code></pre></div>
+<p>Let us test this function. First a random graph:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode clojure"><code class="sourceCode clojure"><a class="sourceLine" id="cb11-1" title="1">(<span class="bu">defn</span><span class="fu"> get-random-graph </span>[n m k w]</a>
+<a class="sourceLine" id="cb11-2" title="2">  (<span class="kw">-&gt;&gt;</span> (<span class="kw">range</span> n)</a>
+<a class="sourceLine" id="cb11-3" title="3">       (<span class="kw">mapcat</span> (<span class="kw">fn</span> [i] (<span class="kw">repeatedly</span> m (<span class="kw">fn</span> [] [i (<span class="kw">+</span> <span class="dv">1</span> i (<span class="kw">rand-int</span> k))]))))</a>
+<a class="sourceLine" id="cb11-4" title="4">       <span class="kw">distinct</span></a>
+<a class="sourceLine" id="cb11-5" title="5">       (<span class="kw">mapcat</span> (<span class="kw">fn</span> [x] {x (<span class="kw">+</span> <span class="dv">1</span> (<span class="kw">rand-int</span> w))}))</a>
+<a class="sourceLine" id="cb11-6" title="6">       (<span class="kw">into</span> {})))</a>
+<a class="sourceLine" id="cb11-7" title="7"></a>
+<a class="sourceLine" id="cb11-8" title="8">(<span class="bu">def</span><span class="fu"> random-graph </span>(get-random-graph <span class="dv">8</span> <span class="dv">2</span> <span class="dv">5</span> <span class="dv">10</span>))</a>
+<a class="sourceLine" id="cb11-9" title="9">random-graph</a></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode clojure"><code class="sourceCode clojure"><a class="sourceLine" id="cb12-1" title="1"><span class="va">#&#39;user/get-random-graph</span></a>
+<a class="sourceLine" id="cb12-2" title="2"><span class="va">#&#39;user/random-graph</span></a>
+<a class="sourceLine" id="cb12-3" title="3">{[<span class="dv">7</span> <span class="dv">12</span>] <span class="dv">4</span>, [<span class="dv">7</span> <span class="dv">11</span>] <span class="dv">9</span>, [<span class="dv">2</span> <span class="dv">3</span>] <span class="dv">2</span>, [<span class="dv">2</span> <span class="dv">5</span>] <span class="dv">8</span>, [<span class="dv">0</span> <span class="dv">5</span>] <span class="dv">4</span>, [<span class="dv">4</span> <span class="dv">7</span>] <span class="dv">4</span>, [<span class="dv">1</span> <span class="dv">4</span>] <span class="dv">1</span>, [<span class="dv">5</span> <span class="dv">7</span>] <span class="dv">9</span>, [<span class="dv">1</span> <span class="dv">3</span>] <span class="dv">2</span>, [<span class="dv">6</span> <span class="dv">8</span>] <span class="dv">8</span>, [<span class="dv">3</span> <span class="dv">6</span>] <span class="dv">6</span>, [<span class="dv">4</span> <span class="dv">5</span>] <span class="dv">10</span>, [<span class="dv">0</span> <span class="dv">4</span>] <span class="dv">9</span>, [<span class="dv">6</span> <span class="dv">10</span>] <span class="dv">1</span>}</a></code></pre></div>
+<p><img src="graphb.png" /></p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode clojure"><code class="sourceCode clojure"><a class="sourceLine" id="cb13-1" title="1">(<span class="kw">into</span> [] (find-a-path random-graph <span class="dv">0</span> <span class="dv">9</span>))</a>
+<a class="sourceLine" id="cb13-2" title="2">(find-a-path random-graph <span class="dv">8</span> <span class="dv">0</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode clojure"><code class="sourceCode clojure"><a class="sourceLine" id="cb14-1" title="1">[]</a>
+<a class="sourceLine" id="cb14-2" title="2">[]</a></code></pre></div>
+<p>Finally, our implementation of Ford-Fulkerson:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode clojure"><code class="sourceCode clojure"><a class="sourceLine" id="cb15-1" title="1">(<span class="bu">defn</span><span class="fu"> ford-fulkerson </span>[G a b]</a>
+<a class="sourceLine" id="cb15-2" title="2">   (<span class="kw">loop</span> [H G S {}]</a>
+<a class="sourceLine" id="cb15-3" title="3">     (<span class="kw">let</span> [R (find-a-path H a b)]</a>
+<a class="sourceLine" id="cb15-4" title="4">       (<span class="kw">if</span> (<span class="kw">empty?</span> R)</a>
+<a class="sourceLine" id="cb15-5" title="5">         (<span class="kw">into</span> {} S)</a>
+<a class="sourceLine" id="cb15-6" title="6">         (<span class="kw">let</span> [v (<span class="kw">reduce</span> <span class="kw">min</span> (<span class="kw">map</span> H R))</a>
+<a class="sourceLine" id="cb15-7" title="7">               P (<span class="kw">zipmap</span> R (<span class="kw">repeat</span> v))]</a>
+<a class="sourceLine" id="cb15-8" title="8">           (<span class="kw">recur</span> (residual-graph H P) (<span class="kw">merge-with</span> <span class="kw">+</span> S P)))))))</a></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode clojure"><code class="sourceCode clojure"><a class="sourceLine" id="cb16-1" title="1"><span class="va">#&#39;user/ford-fulkerson</span></a></code></pre></div>
+<p>Let us test this on the graph we defined above:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode clojure"><code class="sourceCode clojure"><a class="sourceLine" id="cb17-1" title="1">(ford-fulkerson G <span class="at">:a</span> <span class="at">:f</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode clojure"><code class="sourceCode clojure"><a class="sourceLine" id="cb18-1" title="1">{[<span class="at">:a</span> <span class="at">:b</span>] <span class="dv">4</span>, [<span class="at">:b</span> <span class="at">:d</span>] <span class="dv">2</span>, [<span class="at">:d</span> <span class="at">:f</span>] <span class="dv">2</span>, (<span class="at">:b</span> <span class="at">:a</span>) <span class="dv">2</span>, [<span class="at">:a</span> <span class="at">:c</span>] <span class="dv">3</span>, [<span class="at">:c</span> <span class="at">:e</span>] <span class="dv">3</span>, [<span class="at">:e</span> <span class="at">:f</span>] <span class="dv">3</span>}</a></code></pre></div>
+<p><img src="graph8.png" /></p>
+<p>Let us look find an augmenting suggraph on a different large random-graph</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode clojure"><code class="sourceCode clojure"><a class="sourceLine" id="cb19-1" title="1">(<span class="bu">def</span><span class="fu"> random-graph </span>(get-random-graph <span class="dv">20</span> <span class="dv">5</span> <span class="dv">5</span> <span class="dv">10</span>))</a>
+<a class="sourceLine" id="cb19-2" title="2">random-graph</a></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode clojure"><code class="sourceCode clojure"><a class="sourceLine" id="cb20-1" title="1"><span class="va">#&#39;user/random-graph</span></a>
+<a class="sourceLine" id="cb20-2" title="2">{[<span class="dv">8</span> <span class="dv">11</span>] <span class="dv">2</span>, [<span class="dv">16</span> <span class="dv">19</span>] <span class="dv">2</span>, [<span class="dv">10</span> <span class="dv">14</span>] <span class="dv">1</span>, [<span class="dv">18</span> <span class="dv">23</span>] <span class="dv">1</span>, [<span class="dv">13</span> <span class="dv">15</span>] <span class="dv">10</span>, [<span class="dv">7</span> <span class="dv">11</span>] <span class="dv">1</span>, [<span class="dv">12</span> <span class="dv">17</span>] <span class="dv">4</span>, [<span class="dv">10</span> <span class="dv">15</span>] <span class="dv">5</span>, [<span class="dv">14</span> <span class="dv">17</span>] <span class="dv">3</span>, [<span class="dv">2</span> <span class="dv">3</span>] <span class="dv">5</span>, [<span class="dv">2</span> <span class="dv">5</span>] <span class="dv">1</span>, [<span class="dv">10</span> <span class="dv">13</span>] <span class="dv">5</span>, [<span class="dv">15</span> <span class="dv">17</span>] <span class="dv">3</span>, [<span class="dv">6</span> <span class="dv">7</span>] <span class="dv">2</span>, [<span class="dv">12</span> <span class="dv">14</span>] <span class="dv">6</span>, [<span class="dv">5</span> <span class="dv">10</span>] <span class="dv">8</span>, [<span class="dv">0</span> <span class="dv">5</span>] <span class="dv">10</span>, [<span class="dv">17</span> <span class="dv">18</span>] <span class="dv">6</span>, [<span class="dv">11</span> <span class="dv">14</span>] <span class="dv">1</span>, [<span class="dv">8</span> <span class="dv">10</span>] <span class="dv">3</span>, [<span class="dv">14</span> <span class="dv">19</span>] <span class="dv">3</span>, [<span class="dv">4</span> <span class="dv">7</span>] <span class="dv">7</span>, [<span class="dv">4</span> <span class="dv">9</span>] <span class="dv">10</span>, [<span class="dv">15</span> <span class="dv">20</span>] <span class="dv">4</span>, [<span class="dv">14</span> <span class="dv">15</span>] <span class="dv">10</span>, [<span class="dv">1</span> <span class="dv">4</span>] <span class="dv">1</span>, [<span class="dv">5</span> <span class="dv">7</span>] <span class="dv">5</span>, [<span class="dv">1</span> <span class="dv">3</span>] <span class="dv">8</span>, [<span class="dv">4</span> <span class="dv">8</span>] <span class="dv">5</span>, [<span class="dv">10</span> <span class="dv">11</span>] <span class="dv">2</span>, [<span class="dv">1</span> <span class="dv">5</span>] <span class="dv">9</span>, [<span class="dv">9</span> <span class="dv">14</span>] <span class="dv">1</span>, [<span class="dv">15</span> <span class="dv">18</span>] <span class="dv">10</span>, [<span class="dv">5</span> <span class="dv">8</span>] <span class="dv">4</span>, [<span class="dv">8</span> <span class="dv">13</span>] <span class="dv">5</span>, [<span class="dv">6</span> <span class="dv">8</span>] <span class="dv">1</span>, [<span class="dv">9</span> <span class="dv">11</span>] <span class="dv">4</span>, [<span class="dv">7</span> <span class="dv">9</span>] <span class="dv">8</span>, [<span class="dv">2</span> <span class="dv">7</span>] <span class="dv">2</span>, [<span class="dv">13</span> <span class="dv">17</span>] <span class="dv">1</span>, [<span class="dv">2</span> <span class="dv">4</span>] <span class="dv">5</span>, [<span class="dv">3</span> <span class="dv">6</span>] <span class="dv">4</span>, [<span class="dv">7</span> <span class="dv">10</span>] <span class="dv">2</span>, [<span class="dv">0</span> <span class="dv">2</span>] <span class="dv">10</span>, [<span class="dv">6</span> <span class="dv">9</span>] <span class="dv">5</span>, [<span class="dv">11</span> <span class="dv">15</span>] <span class="dv">10</span>, [<span class="dv">19</span> <span class="dv">21</span>] <span class="dv">4</span>, [<span class="dv">0</span> <span class="dv">4</span>] <span class="dv">3</span>, [<span class="dv">14</span> <span class="dv">18</span>] <span class="dv">1</span>, [<span class="dv">9</span> <span class="dv">13</span>] <span class="dv">7</span>, [<span class="dv">13</span> <span class="dv">16</span>] <span class="dv">4</span>, [<span class="dv">13</span> <span class="dv">18</span>] <span class="dv">9</span>, [<span class="dv">3</span> <span class="dv">8</span>] <span class="dv">7</span>, [<span class="dv">17</span> <span class="dv">19</span>] <span class="dv">10</span>, [<span class="dv">3</span> <span class="dv">7</span>] <span class="dv">3</span>, [<span class="dv">16</span> <span class="dv">20</span>] <span class="dv">1</span>, [<span class="dv">18</span> <span class="dv">21</span>] <span class="dv">5</span>, [<span class="dv">8</span> <span class="dv">12</span>] <span class="dv">1</span>, [<span class="dv">12</span> <span class="dv">16</span>] <span class="dv">6</span>, [<span class="dv">1</span> <span class="dv">2</span>] <span class="dv">7</span>, [<span class="dv">17</span> <span class="dv">22</span>] <span class="dv">2</span>, [<span class="dv">19</span> <span class="dv">20</span>] <span class="dv">4</span>, [<span class="dv">11</span> <span class="dv">16</span>] <span class="dv">10</span>, [<span class="dv">17</span> <span class="dv">21</span>] <span class="dv">8</span>}</a></code></pre></div>
+<p><img src="graph9.png" /></p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode clojure"><code class="sourceCode clojure"><a class="sourceLine" id="cb21-1" title="1">(<span class="bu">def</span><span class="fu"> augmenting-subgraph </span>(ford-fulkerson random-graph <span class="dv">0</span> <span class="dv">20</span>))</a>
+<a class="sourceLine" id="cb21-2" title="2">augmenting-subgraph</a></code></pre></div>
+<div class="sourceCode" id="cb22"><pre class="sourceCode clojure"><code class="sourceCode clojure"><a class="sourceLine" id="cb22-1" title="1"><span class="va">#&#39;user/augmenting-subgraph</span></a>
+<a class="sourceLine" id="cb22-2" title="2">{[<span class="dv">8</span> <span class="dv">11</span>] <span class="dv">3</span>, [<span class="dv">10</span> <span class="dv">14</span>] <span class="dv">1</span>, (<span class="dv">10</span> <span class="dv">5</span>) <span class="dv">8</span>, [<span class="dv">13</span> <span class="dv">15</span>] <span class="dv">2</span>, (<span class="dv">15</span> <span class="dv">11</span>) <span class="dv">2</span>, (<span class="dv">11</span> <span class="dv">9</span>) <span class="dv">5</span>, [<span class="dv">7</span> <span class="dv">11</span>] <span class="dv">3</span>, [<span class="dv">10</span> <span class="dv">15</span>] <span class="dv">4</span>, [<span class="dv">14</span> <span class="dv">17</span>] <span class="dv">4</span>, [<span class="dv">2</span> <span class="dv">3</span>] <span class="dv">2</span>, [<span class="dv">15</span> <span class="dv">17</span>] <span class="dv">2</span>, [<span class="dv">5</span> <span class="dv">10</span>] <span class="dv">8</span>, (<span class="dv">6</span> <span class="dv">3</span>) <span class="dv">1</span>, [<span class="dv">0</span> <span class="dv">5</span>] <span class="dv">9</span>, [<span class="dv">11</span> <span class="dv">14</span>] <span class="dv">1</span>, [<span class="dv">8</span> <span class="dv">10</span>] <span class="dv">2</span>, [<span class="dv">14</span> <span class="dv">19</span>] <span class="dv">1</span>, [<span class="dv">15</span> <span class="dv">20</span>] <span class="dv">4</span>, (<span class="dv">11</span> <span class="dv">8</span>) <span class="dv">1</span>, [<span class="dv">5</span> <span class="dv">7</span>] <span class="dv">6</span>, [<span class="dv">9</span> <span class="dv">14</span>] <span class="dv">1</span>, (<span class="dv">15</span> <span class="dv">10</span>) <span class="dv">1</span>, [<span class="dv">5</span> <span class="dv">8</span>] <span class="dv">2</span>, (<span class="dv">14</span> <span class="dv">11</span>) <span class="dv">1</span>, [<span class="dv">6</span> <span class="dv">8</span>] <span class="dv">1</span>, [<span class="dv">9</span> <span class="dv">11</span>] <span class="dv">5</span>, [<span class="dv">7</span> <span class="dv">9</span>] <span class="dv">5</span>, [<span class="dv">13</span> <span class="dv">17</span>] <span class="dv">1</span>, [<span class="dv">3</span> <span class="dv">6</span>] <span class="dv">2</span>, (<span class="dv">19</span> <span class="dv">14</span>) <span class="dv">1</span>, [<span class="dv">7</span> <span class="dv">10</span>] <span class="dv">2</span>, (<span class="dv">17</span> <span class="dv">14</span>) <span class="dv">2</span>, (<span class="dv">11</span> <span class="dv">7</span>) <span class="dv">3</span>, (<span class="dv">9</span> <span class="dv">7</span>) <span class="dv">2</span>, (<span class="dv">17</span> <span class="dv">15</span>) <span class="dv">1</span>, (<span class="dv">15</span> <span class="dv">13</span>) <span class="dv">1</span>, [<span class="dv">0</span> <span class="dv">2</span>] <span class="dv">2</span>, [<span class="dv">11</span> <span class="dv">15</span>] <span class="dv">3</span>, [<span class="dv">9</span> <span class="dv">13</span>] <span class="dv">2</span>, [<span class="dv">3</span> <span class="dv">8</span>] <span class="dv">1</span>, [<span class="dv">17</span> <span class="dv">19</span>] <span class="dv">4</span>, [<span class="dv">16</span> <span class="dv">20</span>] <span class="dv">1</span>, (<span class="dv">7</span> <span class="dv">5</span>) <span class="dv">1</span>, (<span class="dv">5</span> <span class="dv">0</span>) <span class="dv">2</span>, [<span class="dv">19</span> <span class="dv">20</span>] <span class="dv">4</span>, [<span class="dv">11</span> <span class="dv">16</span>] <span class="dv">1</span>}</a></code></pre></div>
+<p><img src="grapha.png" /></p>
+<p>Let me simplify the output by removing spurious feedback loops:</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode clojure"><code class="sourceCode clojure"><a class="sourceLine" id="cb23-1" title="1">(<span class="bu">defn</span><span class="fu"> clean </span>[G]</a>
+<a class="sourceLine" id="cb23-2" title="2">  (<span class="kw">let</span> [ks (<span class="kw">into</span> #{} (<span class="kw">keys</span> G))</a>
+<a class="sourceLine" id="cb23-3" title="3">        H (<span class="kw">-&gt;&gt;</span> (<span class="kw">map</span> <span class="kw">reverse</span> ks)</a>
+<a class="sourceLine" id="cb23-4" title="4">               (<span class="kw">filter</span> ks)</a>
+<a class="sourceLine" id="cb23-5" title="5">               (<span class="kw">mapcat</span> (<span class="kw">fn</span> [k] (<span class="kw">let</span> [v0 (G k) v1 (G (<span class="kw">reverse</span> k))]</a>
+<a class="sourceLine" id="cb23-6" title="6">                                   (<span class="kw">if</span> (<span class="kw">&gt;</span> v0 v1)</a>
+<a class="sourceLine" id="cb23-7" title="7">                                       {k (<span class="kw">-</span> v0 v1)}</a>
+<a class="sourceLine" id="cb23-8" title="8">                                       {(<span class="kw">reverse</span> k) (<span class="kw">-</span> v1 v0)}))))</a>
+<a class="sourceLine" id="cb23-9" title="9">               (<span class="kw">into</span> {}))]</a>
+<a class="sourceLine" id="cb23-10" title="10">      (<span class="kw">as-&gt;</span> (<span class="kw">map</span> <span class="kw">reverse</span> (<span class="kw">keys</span> H)) $</a>
+<a class="sourceLine" id="cb23-11" title="11">            (<span class="kw">concat</span> (<span class="kw">keys</span> H) $)</a>
+<a class="sourceLine" id="cb23-12" title="12">            (<span class="kw">into</span> [] $)</a>
+<a class="sourceLine" id="cb23-13" title="13">            (<span class="kw">merge</span> (<span class="kw">apply</span> <span class="kw">dissoc</span> G $) H)</a>
+<a class="sourceLine" id="cb23-14" title="14">            (<span class="kw">filter</span> (<span class="kw">fn</span> [[k v]] (<span class="kw">&gt;</span> v <span class="dv">0</span>)) $))))</a>
+<a class="sourceLine" id="cb23-15" title="15">  </a>
+<a class="sourceLine" id="cb23-16" title="16">(<span class="bu">def</span><span class="fu"> cleaned </span>(clean augmenting-subgraph))</a></code></pre></div>
+<div class="sourceCode" id="cb24"><pre class="sourceCode clojure"><code class="sourceCode clojure"><a class="sourceLine" id="cb24-1" title="1"><span class="va">#&#39;user/clean</span></a>
+<a class="sourceLine" id="cb24-2" title="2"><span class="va">#&#39;user/cleaned</span></a></code></pre></div>
+<p><img src="graphc.png" /></p>
+<p>So, here is the final version of mu implementation of the Ford-Fulkerson algorithm to find a maximal augmenting subgraph with maximal flow:</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode clojure"><code class="sourceCode clojure"><a class="sourceLine" id="cb25-1" title="1">(<span class="bu">defn</span><span class="fu"> ford-fulkerson </span>[G a b]</a>
+<a class="sourceLine" id="cb25-2" title="2">   (<span class="kw">loop</span> [H G S {}]</a>
+<a class="sourceLine" id="cb25-3" title="3">     (<span class="kw">let</span> [R (find-a-path H a b)]</a>
+<a class="sourceLine" id="cb25-4" title="4">       (<span class="kw">if</span> (<span class="kw">empty?</span> R)</a>
+<a class="sourceLine" id="cb25-5" title="5">         (<span class="kw">into</span> {} (clean S))</a>
+<a class="sourceLine" id="cb25-6" title="6">         (<span class="kw">let</span> [v (<span class="kw">reduce</span> <span class="kw">min</span> (<span class="kw">map</span> H R))</a>
+<a class="sourceLine" id="cb25-7" title="7">               P (<span class="kw">zipmap</span> R (<span class="kw">repeat</span> v))]</a>
+<a class="sourceLine" id="cb25-8" title="8">           (<span class="kw">recur</span> (residual-graph H P) (<span class="kw">merge-with</span> <span class="kw">+</span> S P)))))))</a></code></pre></div>
+<div class="sourceCode" id="cb26"><pre class="sourceCode clojure"><code class="sourceCode clojure"><a class="sourceLine" id="cb26-1" title="1"><span class="va">#&#39;user/ford-fulkerson</span></a></code></pre></div>
+<p>and a final test:</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode clojure"><code class="sourceCode clojure"><a class="sourceLine" id="cb27-1" title="1">(<span class="kw">=</span> (<span class="kw">into</span> {} cleaned)</a>
+<a class="sourceLine" id="cb27-2" title="2">   (ford-fulkerson random-graph <span class="dv">0</span> <span class="dv">20</span>))</a></code></pre></div>
+<div class="sourceCode" id="cb28"><pre class="sourceCode clojure"><code class="sourceCode clojure"><a class="sourceLine" id="cb28-1" title="1"><span class="va">true</span></a></code></pre></div>
+</body>
+</html>
