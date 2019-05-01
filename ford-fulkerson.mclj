@@ -17,7 +17,7 @@ where $V$ is a finite set of vertices, $E\subseteq V\times V$ is
 the set of edges and $w\colon E\to [0,\infty)$ is the weight 
 function.  Here is an example:
 
-![](graph1.png)
+![](figures/graph1.png)
 
 ## Augmenting Subgraphs
 
@@ -37,7 +37,7 @@ our example above.
 
 Here is an example of an augmenting subgraph:
 
-![](graph2.png) 
+![](figures/graph2.png) 
 
 Notice that any path in $G$ gives us an augmenting subgraph if we set the
 weights of each of the edges to the minimal weight along the path.  For 
@@ -70,7 +70,7 @@ $$
 With this definition at hand, for the graph and the augmenting subgraph we gave above
 the residual graph is going to be
 
-![](graph4.png)
+![](figures/graph4.png)
 
 ## The Poset of Augmenting Subgraphs
 
@@ -83,7 +83,7 @@ for every $(a,b)\in E'$.
 With this definition at hand, now we can talk about *maximal augmented subgraphs*.
 Here are two such maximal augmented subgraphs which (necessarily) are incomparable:
 
-![](graph2.png) ![](graph3.png)
+![](figures/graph2.png) ![](figures/graph3.png)
 
 ## Flow Along an Augmenting Subgraph
 
@@ -133,7 +133,7 @@ I will represent a weighted simple graph as a hashmap of pairs of vertices:
 ``` :results nil :display nil :code
 (dot-file G "graph5.dot")
 ```
-![](graph5.png)
+![](figures/graph5.png)
 
 Here is an augmenting subgraph:
 ``` :results :true :display :true :code
@@ -143,7 +143,7 @@ Here is an augmenting subgraph:
 ``` :results nil :display nil :code
 (dot-file S "graph6.dot")
 ```
-![](graph6.png)
+![](figures/graph6.png)
 
 Next, we need a function that returns a residual graph for a weighted simple
 directed graph and an augmenting subgraph:
@@ -163,7 +163,7 @@ RG
 ``` :results nil :display nil :code
 (dot-file RG "graph7.dot")
 ```
-![](graph7.png)
+![](figures/graph7.png)
 
 Next, a depth-first search function to find an augmenting path between two 
 vertices:
@@ -193,7 +193,7 @@ random-graph
 ``` :results nil :display nil :code
 (dot-file random-graph "graphb.dot")
 ```
-![](graphb.png)
+![](figures/graphb.png)
 ``` :results :true :display :true :code
 (into [] (find-a-path random-graph 0 9))
 (find-a-path random-graph 8 0)
@@ -217,7 +217,7 @@ Let us test this on the graph we defined above:
 ``` :results nil :display nil :code
 (dot-file (ford-fulkerson G :a :f) "graph8.dot")
 ```
-![](graph8.png)
+![](figures/graph8.png)
 
 Let us look find an augmenting suggraph on a different large random-graph
 ``` :display true :results true :code
@@ -227,7 +227,7 @@ random-graph
 ``` :display nil :results nil :code
 (dot-file random-graph "graph9.dot")
 ```
-![](graph9.png)
+![](figures/graph9.png)
 
 ``` :display :true :results :true :code
 (def augmenting-subgraph (ford-fulkerson random-graph 0 20))
@@ -236,7 +236,7 @@ augmenting-subgraph
 ``` :display nil :results nil :code
 (dot-file augmenting-subgraph "grapha.dot")
 ```
-![](grapha.png)
+![](figures/grapha.png)
 
 Let me simplify the output by removing spurious feedback loops:
 ``` :display :true :results :true :code
@@ -260,7 +260,7 @@ Let me simplify the output by removing spurious feedback loops:
 ``` :display nil :results nil :code
 (dot-file cleaned "graphc.dot")
 ```
-![](graphc.png)
+![](figures/graphc.png)
 
 So, here is the final version of mu implementation of the Ford-Fulkerson
 algorithm to find a maximal augmenting subgraph with maximal flow:
