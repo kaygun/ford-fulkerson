@@ -118,7 +118,7 @@ flow using this recursive formula with augmenting paths for $S$.
 
 ``` :results nil :display nil :code
 (defn dot-file [G file-name]
-  (with-open [out (clojure.java.io/writer file-name)]
+  (with-open [out (clojure.java.io/writer (str "figures/" file-name))]
      (.write out "digraph G {\nnode[shape=circle];\n")
      (doseq [[k v] G]
         (.write out (format "\"%s\" -> \"%s\" [label=%s];\n" (first k) (second k) v)))
