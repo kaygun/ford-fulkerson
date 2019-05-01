@@ -69,7 +69,7 @@ if $G'$ is a subgraph of $G''$ and we have $w'(a,b)\leq w''(a,b)$
 for every $(a,b)\in E'$.
 
 With this definition at hand, now we can talk about *maximal augmented subgraphs*.
-Here are two such maximal augmented subgraphs which (necessarily) are incomparible:
+Here are two such maximal augmented subgraphs which (necessarily) are incomparable:
 
 ![](graph2.png) ![](graph3.png)
 
