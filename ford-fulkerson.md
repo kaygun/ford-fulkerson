@@ -1,3 +1,15 @@
+## Description of the problem
+
+Today, I am going to write about [Ford-Fulkerson
+Algorithm](https://en.wikipedia.org/wiki/Ford%E2%80%93Fulkerson_algorithm).
+I wrote about this
+[earlier](https://kaygun.tumblr.com/post/103320427534/an-implementation-of-ford-fulkerson-algorithm-in),
+but that post was in Common Lisp. Plus, I am going to go over the
+theory slightly deeper than my original post, and write a new
+implemention in Clojure. I also [posted the text and the
+code](https://github.com/kaygun/ford-fulkerson) for this post on my
+github.
+
 ## Weighted Simple Directed Graphs 
 
 We have a weighted simple directed graph $G = (V,E,w)$
@@ -69,7 +81,7 @@ if $G'$ is a subgraph of $G''$ and we have $w'(a,b)\leq w''(a,b)$
 for every $(a,b)\in E'$.
 
 With this definition at hand, now we can talk about *maximal augmented subgraphs*.
-Here are two such maximal augmented subgraphs which (necessarily) are incomparible:
+Here are two such maximal augmented subgraphs which (necessarily) are incomparable:
 
 ![](graph2.png) ![](graph3.png)
 
@@ -97,7 +109,10 @@ for an augmenting subgraph $S$ of $G$ where $w_S$ is the weight function of the
 augmenting subgraph $S$. The base case is that $F(G)$ is uniform weight function 0 
 if $G$ has no augmenting subgraphs. 
 
-The [Ford-Fulkerson Algorithm](https://en.wikipedia.org/wiki/Ford%E2%80%93Fulkerson_algorithm) finds the weight function of a maximal augmenting subgraph with maximal flow using this recursive formula with augmenting paths for $S$.
+The [Ford-Fulkerson
+Algorithm](https://en.wikipedia.org/wiki/Ford%E2%80%93Fulkerson_algorithm)
+finds the weight function of maximal augmenting subgraph with maximal
+flow using this recursive formula with augmenting paths for $S$.
 
 ## An Implementation in Clojure
 
@@ -205,7 +220,7 @@ random-graph
 ```clojure
 #'user/get-random-graph
 #'user/random-graph
-{[7 12] 4, [7 11] 9, [2 3] 2, [2 5] 8, [0 5] 4, [4 7] 4, [1 4] 1, [5 7] 9, [1 3] 2, [6 8] 8, [3 6] 6, [4 5] 10, [0 4] 9, [6 10] 1}
+{[7 11] 4, [2 3] 2, [6 7] 8, [7 8] 10, [4 9] 2, [4 6] 5, [5 7] 10, [1 3] 2, [1 5] 6, [0 3] 2, [5 9] 8, [0 4] 1, [6 10] 3, [3 8] 7, [3 7] 6, [2 6] 6}
 ```
 
 
@@ -219,7 +234,7 @@ random-graph
 (find-a-path random-graph 8 0)
 ```
 ```clojure
-[]
+[[0 4] [4 9]]
 []
 ```
 
@@ -265,7 +280,7 @@ random-graph
 ```
 ```clojure
 #'user/random-graph
-{[8 11] 2, [16 19] 2, [10 14] 1, [18 23] 1, [13 15] 10, [7 11] 1, [12 17] 4, [10 15] 5, [14 17] 3, [2 3] 5, [2 5] 1, [10 13] 5, [15 17] 3, [6 7] 2, [12 14] 6, [5 10] 8, [0 5] 10, [17 18] 6, [11 14] 1, [8 10] 3, [14 19] 3, [4 7] 7, [4 9] 10, [15 20] 4, [14 15] 10, [1 4] 1, [5 7] 5, [1 3] 8, [4 8] 5, [10 11] 2, [1 5] 9, [9 14] 1, [15 18] 10, [5 8] 4, [8 13] 5, [6 8] 1, [9 11] 4, [7 9] 8, [2 7] 2, [13 17] 1, [2 4] 5, [3 6] 4, [7 10] 2, [0 2] 10, [6 9] 5, [11 15] 10, [19 21] 4, [0 4] 3, [14 18] 1, [9 13] 7, [13 16] 4, [13 18] 9, [3 8] 7, [17 19] 10, [3 7] 3, [16 20] 1, [18 21] 5, [8 12] 1, [12 16] 6, [1 2] 7, [17 22] 2, [19 20] 4, [11 16] 10, [17 21] 8}
+{[10 14] 7, [8 9] 1, [7 12] 9, [18 23] 6, [7 11] 4, [12 17] 7, [10 15] 7, [2 3] 5, [2 5] 5, [15 16] 6, [15 17] 10, [15 19] 8, [6 7] 9, [12 13] 9, [0 5] 9, [11 14] 1, [19 22] 10, [7 8] 4, [8 10] 3, [9 12] 1, [4 9] 4, [14 15] 1, [11 12] 8, [1 3] 2, [4 8] 9, [10 11] 10, [1 5] 7, [9 14] 7, [16 17] 10, [15 18] 9, [5 6] 2, [5 8] 8, [8 13] 7, [9 11] 2, [2 7] 1, [13 17] 2, [5 9] 4, [3 6] 3, [12 15] 5, [7 10] 1, [4 5] 6, [0 2] 9, [6 9] 9, [0 4] 1, [14 18] 2, [9 13] 7, [13 16] 9, [3 8] 2, [1 6] 10, [17 19] 8, [16 20] 7, [18 21] 2, [2 6] 5, [16 21] 4, [12 16] 8, [18 20] 4, [3 5] 10, [17 22] 3, [19 20] 6, [0 1] 10, [17 21] 8, [17 20] 5}
 ```
 
 
@@ -281,7 +296,7 @@ augmenting-subgraph
 ```
 ```clojure
 #'user/augmenting-subgraph
-{[8 11] 3, [10 14] 1, (10 5) 8, [13 15] 2, (15 11) 2, (11 9) 5, [7 11] 3, [10 15] 4, [14 17] 4, [2 3] 2, [15 17] 2, [5 10] 8, (6 3) 1, [0 5] 9, [11 14] 1, [8 10] 2, [14 19] 1, [15 20] 4, (11 8) 1, [5 7] 6, [9 14] 1, (15 10) 1, [5 8] 2, (14 11) 1, [6 8] 1, [9 11] 5, [7 9] 5, [13 17] 1, [3 6] 2, (19 14) 1, [7 10] 2, (17 14) 2, (11 7) 3, (9 7) 2, (17 15) 1, (15 13) 1, [0 2] 2, [11 15] 3, [9 13] 2, [3 8] 1, [17 19] 4, [16 20] 1, (7 5) 1, (5 0) 2, [19 20] 4, [11 16] 1}
+{(7 6) 7, [10 14] 4, [8 9] 1, [7 12] 3, (11 9) 1, [12 17] 8, (13 8) 5, [10 15] 2, [2 3] 5, [2 5] 4, [15 16] 3, [15 17] 2, [15 19] 1, [6 7] 9, [12 13] 3, (8 3) 3, (13 12) 2, (6 3) 2, (17 16) 3, [0 5] 14, (17 12) 4, (13 9) 1, [8 10] 3, (5 3) 6, [9 12] 1, [4 9] 1, (6 5) 2, (16 13) 1, (5 2) 2, [14 15] 1, [11 12] 1, [9 14] 4, [16 17] 4, [5 6] 3, [5 8] 13, [8 13] 7, (8 5) 7, [9 11] 2, [2 7] 1, [13 17] 3, [5 9] 4, [3 6] 3, (17 15) 1, [0 2] 9, [6 9] 4, (2 0) 4, [0 4] 1, [14 18] 2, [9 13] 7, [13 16] 8, (17 13) 1, [3 8] 3, (16 15) 2, [1 6] 4, [17 19] 3, [16 20] 7, (5 0) 6, (14 10) 3, [18 20] 2, [3 5] 7, (3 2) 3, (14 9) 2, [19 20] 4, [0 1] 4, [17 20] 5}
 ```
 
 

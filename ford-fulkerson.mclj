@@ -1,3 +1,15 @@
+## Description of the problem
+
+Today, I am going to write about [Ford-Fulkerson
+Algorithm](https://en.wikipedia.org/wiki/Ford%E2%80%93Fulkerson_algorithm).
+I wrote about this
+[earlier](https://kaygun.tumblr.com/post/103320427534/an-implementation-of-ford-fulkerson-algorithm-in),
+but that post was in Common Lisp. Plus, I am going to go over the
+theory slightly deeper than my original post, and write a new
+implemention in Clojure. I also [posted the text and the
+code](https://github.com/kaygun/ford-fulkerson) for this post on my
+github.
+
 ## Weighted Simple Directed Graphs 
 
 We have a weighted simple directed graph $G = (V,E,w)$
@@ -97,7 +109,10 @@ for an augmenting subgraph $S$ of $G$ where $w_S$ is the weight function of the
 augmenting subgraph $S$. The base case is that $F(G)$ is uniform weight function 0 
 if $G$ has no augmenting subgraphs. 
 
-The [Ford-Fulkerson Algorithm](https://en.wikipedia.org/wiki/Ford%E2%80%93Fulkerson_algorithm) finds the weight function of a maximal augmenting subgraph with maximal flow using this recursive formula with augmenting paths for $S$.
+The [Ford-Fulkerson
+Algorithm](https://en.wikipedia.org/wiki/Ford%E2%80%93Fulkerson_algorithm)
+finds the weight function of maximal augmenting subgraph with maximal
+flow using this recursive formula with augmenting paths for $S$.
 
 ## An Implementation in Clojure
 
