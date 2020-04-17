@@ -116,12 +116,9 @@ flow using this recursive formula with augmenting paths for $S$.
 
 ## An Implementation in Clojure
 
-
 #'user/dot-file
 
-
 I will represent a weighted simple graph as a hashmap of pairs of vertices:
-
 ```clojure
 (def G {[:a :b] 4 [:a :c] 6 [:b :d] 2 [:d :c] 1 
         [:d :f] 2 [:c :e] 3 [:e :f] 3})
@@ -130,14 +127,9 @@ I will represent a weighted simple graph as a hashmap of pairs of vertices:
 #'user/G
 ```
 
-
-
-
-
 ![](figures/graph5.png)
 
 Here is an augmenting subgraph:
-
 ```clojure
 (def S {[:a :b] 2 [:b :d] 2 [:a :c] 3
         [:d :f] 2 [:c :e] 3 [:e :f] 3})
@@ -146,15 +138,10 @@ Here is an augmenting subgraph:
 #'user/S
 ```
 
-
-
-
-
 ![](figures/graph6.png)
 
 Next, we need a function that returns a residual graph for a weighted simple
 directed graph and an augmenting subgraph:
-
 ```clojure
 (defn residual-graph [G S]
    (->> (mapcat (fn [[k v]] {k (- v) (reverse k) v}) S)
@@ -166,10 +153,7 @@ directed graph and an augmenting subgraph:
 ```clojure
 #'user/residual-graph
 ```
-
-
 Let us test
-
 ```clojure
 (def RG (residual-graph G S))
 RG
@@ -179,15 +163,10 @@ RG
 {(:b :a) 2, (:c :a) 3, (:f :e) 3, [:a :b] 2, (:f :d) 2, [:a :c] 3, [:d :c] 1, (:e :c) 3, (:d :b) 2}
 ```
 
-
-
-
-
 ![](figures/graph7.png)
 
 Next, a depth-first search function to find an augmenting path between two 
 vertices:
-
 ```clojure
 (defn find-a-path [G a b]
   (loop [H G
@@ -202,10 +181,7 @@ vertices:
 ```clojure
 #'user/find-a-path
 ```
-
-
 Let us test this function. First a random graph:
-
 ```clojure
 (defn get-random-graph [n m k w]
   (->> (range n)
@@ -214,34 +190,26 @@ Let us test this function. First a random graph:
        (mapcat (fn [x] {x (+ 1 (rand-int w))}))
        (into {})))
 
-(def random-graph (get-random-graph 8 2 5 10))
+(def random-graph (get-random-graph 9 2 5 10))
 random-graph
 ```
 ```clojure
 #'user/get-random-graph
 #'user/random-graph
-{[7 11] 6, [2 3] 3, [6 7] 1, [0 5] 2, [4 7] 1, [1 4] 1, [7 9] 3, [5 9] 5, [0 2] 4, [6 9] 4, [3 8] 5, [1 6] 9, [2 6] 10, [3 5] 10}
+{[8 9] 5, [3 4] 6, [8 10] 3, [4 9] 9, [1 4] 7, [5 7] 4, [4 8] 10, [1 5] 1, [5 6] 2, [6 11] 3, [2 7] 8, [3 6] 8, [7 10] 10, [0 2] 10, [6 10] 6, [2 6] 9}
 ```
 
-
-
-
-
 ![](figures/graphb.png)
-
 ```clojure
 (into [] (find-a-path random-graph 0 9))
 (find-a-path random-graph 8 0)
 ```
 ```clojure
-[[0 5] [5 9]]
+[]
 []
 ```
 
-
-
 Finally, our implementation of Ford-Fulkerson:
-
 ```clojure
 (defn ford-fulkerson [G a b]
    (loop [H G S {}]
@@ -255,10 +223,7 @@ Finally, our implementation of Ford-Fulkerson:
 ```clojure
 #'user/ford-fulkerson
 ```
-
-
 Let us test this on the graph we defined above:
-
 ```clojure
 (ford-fulkerson G :a :f)
 ```
@@ -266,29 +231,19 @@ Let us test this on the graph we defined above:
 {[:a :b] 4, [:b :d] 2, [:d :f] 2, (:b :a) 2, [:a :c] 3, [:c :e] 3, [:e :f] 3}
 ```
 
-
-
-
-
 ![](figures/graph8.png)
 
 Let us look find an augmenting suggraph on a different large random-graph
-
 ```clojure
 (def random-graph (get-random-graph 20 5 5 10))
 random-graph
 ```
 ```clojure
 #'user/random-graph
-{[16 19] 4, [10 14] 9, [8 9] 10, [7 12] 10, [18 23] 4, [13 15] 2, [7 11] 6, [12 17] 5, [10 15] 10, [2 3] 1, [15 16] 6, [10 13] 2, [15 17] 6, [6 7] 4, [12 14] 8, [5 10] 4, [0 5] 7, [17 18] 10, [11 14] 3, [19 23] 2, [11 13] 5, [8 10] 10, [14 19] 10, [4 7] 2, [4 9] 10, [15 20] 6, [4 6] 5, [14 15] 4, [1 4] 10, [11 12] 2, [1 3] 1, [9 14] 2, [16 17] 7, [15 18] 9, [0 3] 7, [5 6] 10, [5 8] 1, [16 18] 1, [6 8] 10, [9 11] 2, [6 11] 5, [13 17] 3, [5 9] 9, [3 6] 4, [12 15] 10, [0 2] 4, [6 9] 10, [19 21] 1, [14 18] 5, [9 13] 4, [3 8] 9, [17 19] 1, [3 7] 5, [18 21] 3, [2 6] 6, [9 10] 2, [8 12] 8, [16 21] 10, [12 16] 1, [1 2] 6, [18 20] 9, [13 14] 10, [19 20] 2, [11 16] 2, [17 20] 1}
+{[8 11] 3, [16 19] 5, [7 12] 1, [18 23] 5, [13 15] 9, [7 11] 9, [10 15] 5, [2 5] 9, [15 16] 9, [10 13] 7, [15 19] 7, [6 7] 9, [12 13] 7, [5 10] 5, [0 5] 3, [3 4] 10, [19 24] 5, [11 14] 5, [19 22] 1, [18 19] 4, [7 8] 7, [8 10] 6, [14 19] 4, [9 12] 2, [4 9] 3, [15 20] 5, [4 6] 4, [11 12] 10, [1 3] 2, [4 8] 1, [10 11] 1, [5 6] 9, [5 8] 3, [16 18] 2, [8 13] 5, [9 11] 2, [6 11] 7, [10 12] 8, [2 7] 10, [13 17] 3, [2 4] 4, [12 15] 1, [0 2] 6, [6 9] 9, [11 15] 5, [19 21] 3, [0 4] 3, [14 18] 4, [9 13] 6, [13 16] 7, [13 18] 2, [6 10] 10, [14 16] 4, [1 6] 7, [16 20] 6, [18 21] 6, [2 6] 10, [8 12] 3, [12 16] 4, [1 2] 4, [18 20] 4, [3 5] 4, [17 22] 9, [11 16] 3, [0 1] 2, [17 20] 4}
 ```
 
-
-
-
-
 ![](figures/graph9.png)
-
 
 ```clojure
 (def augmenting-subgraph (ford-fulkerson random-graph 0 20))
@@ -296,17 +251,12 @@ augmenting-subgraph
 ```
 ```clojure
 #'user/augmenting-subgraph
-{(7 6) 6, (9 8) 8, [10 14] 6, [8 9] 9, [7 12] 2, [13 15] 2, [12 17] 2, [2 3] 1, [6 7] 5, (8 3) 5, [5 10] 4, (6 3) 6, [0 5] 7, [17 18] 1, [11 14] 4, (8 6) 5, (3 0) 4, [11 13] 2, [8 10] 2, [14 19] 4, (6 5) 8, [15 20] 6, [14 15] 4, [9 14] 2, [0 3] 7, [5 6] 9, [5 8] 1, (14 11) 2, [6 8] 6, [6 11] 4, [5 9] 1, [3 6] 5, (19 14) 2, [0 2] 4, [14 18] 4, [3 8] 6, [3 7] 3, [2 6] 4, [18 20] 5, (3 2) 1, [19 20] 2, [17 20] 1}
+{(7 6) 8, [8 11] 4, [7 12] 1, (10 5) 4, [13 15] 7, (11 9) 3, (4 3) 2, [7 11] 2, [10 15] 3, [2 5] 8, [15 16] 5, [6 7] 9, [12 13] 6, [5 10] 6, [0 5] 8, [3 4] 3, [11 14] 8, [8 10] 1, [9 12] 2, [4 9] 3, (6 5) 7, [15 20] 5, (5 2) 4, [4 6] 2, (11 8) 2, [11 12] 3, [1 3] 2, (6 4) 1, [5 6] 9, [5 8] 3, (14 11) 4, [9 11] 3, [6 11] 3, [2 7] 2, [0 2] 6, [0 4] 3, [14 18] 4, [9 13] 1, (3 1) 1, [1 6] 1, [16 20] 5, (5 0) 5, [18 20] 4, [0 1] 2}
 ```
-
-
-
-
 
 ![](figures/grapha.png)
 
 Let me simplify the output by removing spurious feedback loops:
-
 ```clojure
 (defn clean [G]
   (let [ks (into #{} (keys G))
@@ -330,15 +280,10 @@ Let me simplify the output by removing spurious feedback loops:
 #'user/cleaned
 ```
 
-
-
-
-
 ![](figures/graphc.png)
 
 So, here is the final version of mu implementation of the Ford-Fulkerson
 algorithm to find a maximal augmenting subgraph with maximal flow:
-
 ```clojure
 (defn ford-fulkerson [G a b]
    (loop [H G S {}]
@@ -352,10 +297,7 @@ algorithm to find a maximal augmenting subgraph with maximal flow:
 ```clojure
 #'user/ford-fulkerson
 ```
-
-
 and a final test:
-
 ```clojure
 (= (into {} cleaned)
    (ford-fulkerson random-graph 0 20))
@@ -363,4 +305,3 @@ and a final test:
 ```clojure
 true
 ```
-

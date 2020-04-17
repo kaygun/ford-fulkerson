@@ -187,7 +187,7 @@ Let us test this function. First a random graph:
        (mapcat (fn [x] {x (+ 1 (rand-int w))}))
        (into {})))
 
-(def random-graph (get-random-graph 8 2 5 10))
+(def random-graph (get-random-graph 9 2 5 10))
 random-graph
 ```
 ``` :results nil :display nil :code
